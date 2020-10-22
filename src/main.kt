@@ -1,3 +1,4 @@
+import java.util.Scanner
 
 fun main(args: Array<String>){
     val tokens = listOf(
@@ -20,6 +21,8 @@ fun main(args: Array<String>){
         Pair("block_end", """;""".toRegex()),
         Pair("expression_start", """\(""".toRegex()),
         Pair("expression_end", """\)""".toRegex()),
+        Pair("array_start", """\[""".toRegex()),
+        Pair("array_end", """\]""".toRegex()),
         Pair("arguments", "(\\((?:\\s*[^\\s,]+\\s+[^\\s,]+\\s*,)*\\s*[^\\s,]+\\s+[^\\s,]+\\s*\\))".toRegex())
     )
 
@@ -28,12 +31,17 @@ fun main(args: Array<String>){
         Pair("multiline", "(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)".toRegex())
     )
 
+
     val TokensFound = mutableListOf<Pair<String, String>>()
 
-    //val stringInput = readLine()
 
-    val c_line = """
-        |int main99 ( char [] args ) {
+    println("Escriba el código fuente, solo es posible leer una linea")
+
+    val reader = Scanner(System.`in`)
+    val c_line = reader.nextLine()
+
+    /*val c_line = """
+        |int main99 ( char [ ] args ) {
         |   /* esta mierda no deberia de salir
         |   ni esto
         |   */
@@ -42,10 +50,11 @@ fun main(args: Array<String>){
         |   return 0 ;
         |}
     """.trimMargin()
-
+*/
     val new_c_line = c_line.replace(comments_regex[0].second, "").replace(comments_regex[1].second, "")
-    println(new_c_line);
     val blob = new_c_line.replace('\n', ' ').split(" ")
+
+    println("\n\n Lexemas encontrados: ")
 
     blob.forEach outer@{ w ->
         tokens.forEach { token ->
@@ -53,13 +62,15 @@ fun main(args: Array<String>){
             val pattern = token.second;
             if (pattern.matches(w)) {
                 TokensFound.add(Pair(tokenIdentifier,w))
-                println("$w is $tokenIdentifier")
+                println("$w es $tokenIdentifier")
                 return@outer
             }
         }
     }
 
+
+    println("\nCódigo fuente original\n$new_c_line \n\nLexemas resultantes");
     TokensFound.forEach{
-        //print(it.first+" ")
+        print(it.first+" ")
     }
 }
