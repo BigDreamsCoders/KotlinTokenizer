@@ -40,17 +40,6 @@ fun main(args: Array<String>){
     val reader = Scanner(System.`in`)
     val c_line = reader.nextLine()
 
-    /*val c_line = """
-        |int main99 ( char [ ] args ) {
-        |   /* esta mierda no deberia de salir
-        |   ni esto
-        |   */
-        |   //a ber
-        |   int a = 0;
-        |   return 0 ;
-        |}
-    """.trimMargin()
-*/
     val new_c_line = c_line.replace(comments_regex[0].second, "").replace(comments_regex[1].second, "")
     val blob = new_c_line.replace('\n', ' ').split(" ")
 
