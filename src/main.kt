@@ -4,13 +4,13 @@ fun main(args: Array<String>){
 
     // Lista de tokens que se van a evaluar
     val tokens = listOf(
-        Pair("string", "\"(.*?)\"".toRegex()),
+        Pair("string", "\"(.*?)\"".toRegex(RegexOption.DOT_MATCHES_ALL)),
         Pair("character", "'(\\'|[^']){1}'".toRegex()),
-        Pair("data_type", "(?<![a-zA-Zd._])(int|char|bool)(?![a-zA-Z0-9._])".toRegex()),
-        Pair("access_modifier", "(?<![a-zA-Z0-9._])(public|private|protected)(?![a-zA-Z0-9._])".toRegex()),
-        Pair("statement", "(?<![a-zA-Z0-9._])(if|else|do|while)(?![a-zA-Z0-9._])".toRegex()),
-        Pair("indentifier", "[A-Za-z][A-Za-z0-9_]*".toRegex()),
-        Pair("number", "(0-9)+(.(0-9)+)?".toRegex()),
+        Pair("data_type", """(?<![a-zA-Z\d._])(int|char|bool)(?![a-zA-Z\d._])""".toRegex()),
+        Pair("access_modifier", """(?<![a-zA-Z\d._])(public|private)(?![a-zA-Z\d._])""".toRegex()),
+        Pair("statement", """(?<![a-zA-Z\d._])(if|else|do|while)(?![a-zA-Z\d._])""".toRegex()),
+        Pair("indentifier", """[_a-zA-Z][a-zA-Z\d_]*""".toRegex()),
+        Pair("number", """(\d)+(.(\d)+)?""".toRegex()),
         Pair("arithmetic_operator", """(\+|-|\*|/|%|\+\+|--)""".toRegex()),
         Pair("logic_operator", """(\|\||&&|(!(?!=)))""".toRegex()),
         Pair("bits_operator", """(>>|<<|&|\||~|\^)""".toRegex()),
@@ -19,8 +19,8 @@ fun main(args: Array<String>){
         Pair("EOI", """;""".toRegex()),
         Pair("separator", """,""".toRegex()),
         Pair("access", """\.""".toRegex()),
-        Pair("block_start", """;""".toRegex()),
-        Pair("block_end", """;""".toRegex()),
+        Pair("block_start", """\{""".toRegex()),
+        Pair("block_end", """\}""".toRegex()),
         Pair("expression_start", """\(""".toRegex()),
         Pair("expression_end", """\)""".toRegex()),
         Pair("array_start", """\[""".toRegex()),
@@ -30,26 +30,41 @@ fun main(args: Array<String>){
 
     // Expresiones regulares para identificar comentarios de una y multiples líneas
     val comments_regex = listOf(
-        Pair("oneline", "\"//.*|(\\\"(?:\\\\\\\\[^\\\"]|\\\\\\\\\\\"|.)*?\\\")|(?s)/\\\\*.*?\\\\*/\"".toRegex()),
+        //Pair("oneline", "\"//.*|(\\\"(?:\\\\\\\\[^\\\"]|\\\\\\\\\\\"|.)*?\\\")|(?s)/\\\\*.*?\\\\*/\"".toRegex()),
+        Pair("oneline", "//(.)*".toRegex()),
         Pair("multiline", "(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)".toRegex())
     )
 
-
+    val example = """
+        int main(char[] args) {
+            // Ejemplo de un comentario de una sola línea
+            cout << "HelloWorld!";
+            /* Este es un ejemplo
+                de un comentario de multiples líneas. 
+            */
+            return 0;
+        }
+    """.trimIndent()
 
     // Lista mutable donde vamos a guardar los tokens que encontramos
     val TokensFound = mutableListOf<Pair<String, String>>()
 
     // Entrada de datos
-    println("Escriba el código fuente, solo es posible leer una linea")
+    //println("Escriba el código fuente, solo es posible leer una linea")
 
     val reader = Scanner(System.`in`)
     val c_line = reader.nextLine()
+    //val c_line = example;
 
     // Primera parte de preparación de los datos ingresados, eliminamos los comentarios de una o multiples líneas
     val new_c_line = c_line.replace(comments_regex[0].second, "").replace(comments_regex[1].second, "")
 
+    // ESTO FALTO - Parte de separación de los tokens que podrían estar pegados con identificadores
+    val new_c_line_spaced = new_c_line.replace("(", " ( ").replace(")", " ) ").replace("[", " [ ").replace("]", " ] ").replace(";", " ; ")
+    //println("Linea procesada antes de partir: \n $new_c_line_spaced \n")
+
     // Última parte de preparación de los datos ingresados, hacemos una lista delimitada por espacios
-    val blob = new_c_line.replace('\n', ' ').split(" ")
+    val blob = new_c_line_spaced.replace('\n', ' ').split(" ")
 
     println("\n\n Lexemas encontrados: ")
 
@@ -64,7 +79,7 @@ fun main(args: Array<String>){
             val tokenIdentifier = token.first;
             val pattern = token.second;
             // Realizamos la comprobación la expresión regular correspondiente al token que se está evaluando
-            if (pattern.matches(w)) {
+            if (pattern.containsMatchIn(w)) {
                 // Si coincide lo guardamos en la lista "TokensFound" y mostramos en consola que tipo de token es
                 TokensFound.add(Pair(tokenIdentifier,w))
                 println("$w es $tokenIdentifier")
